@@ -33,6 +33,10 @@ class CategoriesController extends Controller
             return response()->json($validator->errors(), 422);
             
         }
+        // Check if the user has role_id 1 (admin)
+        if ($request->user()->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya admin yang dapat menambahkan kategori sampah.', 'data' => null], 403);
+        }
 
         //create post
        $kategori = Categories::create([
@@ -54,15 +58,27 @@ class CategoriesController extends Controller
 
 
     // DELETE
-      public function destroy(Categories $kategori)
-    {
-      
-        //delete post
+   public function destroy($id)
+{
+    try {
+        // Temukan pengguna berdasarkan ID
+        $kategori = Categories::find($id);
+
+        // Periksa apakah pengguna ditemukan
+        if (!$kategori) {
+            return response()->json(['success' => false, 'message' => 'Kategori tidak ditemukan', 'data' => null], 404);
+        }
+
+        // Hapus pengguna
         $kategori->delete();
 
-        //return response
-        return new PostResource(true, 'Data Post Berhasil Dihapus!', null);
+        // Return response
+        return response()->json(['success' => true, 'message' => 'Data Pengguna Berhasil Dihapus!', 'data' => null], 200);
+    } catch (\Exception $e) {
+        // Tangkap error jika terjadi
+        return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 'data' => null], 500);
     }
+}
 
     
 }

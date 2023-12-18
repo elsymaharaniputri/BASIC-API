@@ -17,9 +17,6 @@ class TransactionController extends Controller
      public function index()
     {
         //jangan lupa import model Post dengan cara klik kanan untuk import
-    //   $transaksi = Transaction::all();
-        //berfungsi untuk mengatur jenis data yang akan ditampilkan
-        // return response()->json(['data' =>  $transaksi]);
 
          // Retrieve the currently authenticated user
     $user = Auth::user();
@@ -36,7 +33,6 @@ class TransactionController extends Controller
         return response()->json(['message' => 'User not authenticated'], 401);
     }
     }
-
 
     //INSERT TRANSACTIONS
        public function store(Request $request)

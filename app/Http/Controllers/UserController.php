@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Http\Resources\RoleResource;
 use App\Http\Resources\UserResource;
@@ -63,42 +64,14 @@ class UserController extends Controller
         // $user = User::with('role')->get();
            $user = User::all();
         //berfungsi untuk mengatur jenis data yang akan ditampilkan
-          return response()->json(['success' => false, 'message' => 'Success: ',  'data' => $user], 500);  
+          return response()->json(['success' => true, 'message' => 'Success: ',  'data' => $user], 200);  
           
         }catch(\Exception $e) {
           // Tangkap error jika terjadi
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 'data' => null], 500);
         }
     }
-   // INSERT DATA KE DATABSE
-    // public function store(Request $request)
-    // {
-        //define validation rules
-        // $validator = Validator::make($request->all(), [
-        //     'username'  => 'required',
-        //     'password'     => 'required',
-        //     'alamat'     => 'required',
-        //     'hp'     => 'required',
-        // ]);
 
-        //check if validation fails
-        // if ($validator->fails()) {
-        //     return response()->json($validator->errors(), 422);
-        // }
-
-        //create post
-    //    $user = User::create([
-    //         'username'     => $request->username,
-    //         'password'   => $request->password,
-    //         'alamat'   => $request->alamat,
-    //          'hp'     => $request->hp,
-    //         'role_id'     => $request->role_id,
-    //     ]);
-
-        //return response
-        // return new UserResource(true, 'Data Post Berhasil Ditambahkan!',  $user);
-  
-        //INSERT DATA
     
         public function store(Request $request)
     {
@@ -110,12 +83,15 @@ class UserController extends Controller
             'alamat'     => 'required',
             'hp'     => 'required',
         ]);
+        // Check if role_id is provided, otherwise set default value
+        $role_id = $request->filled('role_id') ? $request->role_id : 2;
+
          $data = new User;
          $data->username = $request->username;
          $data->password = Hash::make($request->password);
          $data->alamat = $request->alamat;
          $data->hp = $request->hp;
-         $data->role_id = 2;
+         $data->role_id = $data->role_id = $role_id;;
          if($data->save()){
           return response()->json(['success' => true, 'message' => 'Success: ',  'data' => $data], 200);  
          }else{
@@ -129,29 +105,33 @@ class UserController extends Controller
     }
 
     
+// DELETE
+public function destroy($id)
+{
+    try {
+        // Temukan pengguna berdasarkan ID
+        $user = User::find($id);
+
+        // Periksa apakah pengguna ditemukan
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Pengguna tidak ditemukan', 'data' => null], 404);
+        }
+
+      // Hapus terlebih dahulu catatan terkait di tabel transactions
+       Transaction::where('user_id', $user->id)->delete();
 
 
-
-    // DELETE
-      public function destroy( User $user)
-    {
-      
-
-         try {
-
-       // Hapus terlebih dahulu catatan terkait di tabel transactions
-        $user->transactions()->delete();
-
-        // Hapus role
+        // Hapus pengguna
         $user->delete();
 
-          //return response
-        return new UserResource(true, 'Data Post Berhasil Dihapus!', null);
-        } catch (\Exception $e) {
-            // Tangkap error jika terjadi
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 'data' => null], 500);
-        }
-    }    
+        // Return response
+        return response()->json(['success' => true, 'message' => 'Data Pengguna Berhasil Dihapus!', 'data' => null], 200);
+    } catch (\Exception $e) {
+        // Tangkap error jika terjadi
+        return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage(), 'data' => null], 500);
+    }
+}
+
 
 
 
